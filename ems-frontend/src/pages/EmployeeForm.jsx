@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
 import { getDepartments } from "../services/departmentService";
-import { addEmployee } from "../services/employeeService";
+import { addEmployee, updateEmployee } from "../services/employeeService";
 
 
-function EmployeeForm({ loadEmployees }){
-    const [ employeename, setEmployeeName] = useState("");
-    const [ designation,setDesignation ] = useState("");
-    const [ dateofjoining,setDateOfJoining ]= useState("");
-    const [ contact,setContact ] = useState("");
-    const [ departmentid,setDepartmentID ]= useState("");
-    const [ isActive,setIsActive ]= useState(true);
+function EmployeeForm({ loadEmployees,employeeToEdit,onCancelEdit }){
+    const [ employeename, setEmployeeName] = useState(employeeToEdit?.EmployeeName||"");
+    const [ designation,setDesignation ] = useState(employeeToEdit?.Designation||"");
+    const [ dateofjoining,setDateOfJoining ]= useState(employeeToEdit?.DateOfJoining||"");
+    const [ contact,setContact ] = useState(employeeToEdit?.Contact||"");
+    const [ departmentid,setDepartmentID ]= useState(
+        employeeToEdit?.DepartmentId!=null?String(employeeToEdit.DepartmentId):""
+    );
+    const [ isActive,setIsActive ]= useState(employeeToEdit?employeeToEdit.IsActive:true);
 
     const [ departments,setDepartments ] = useState([]);
     const [ loadingdepartments,setLoadingDepartments ] = useState(true);
     const [ error,setError ]= useState("");
     const [ saving,setSaving ]= useState(false);
+
 
     //load departments for the dropdown
     useEffect(()=>{
@@ -49,8 +52,16 @@ function EmployeeForm({ loadEmployees }){
         };
 
         try{
-            await addEmployee(employeeData);
-            alert("employee added successfully");
+            if(employeeToEdit){
+                await updateEmployee(employeeToEdit.EmployeeId,employeeData);
+                alert("employee updated successfully");
+                if(onCancelEdit){
+                    onCancelEdit();
+                }
+            }else{
+                await addEmployee(employeeData);
+                alert("employee added successfully");
+            }
 
             setEmployeeName("");
             setDesignation("");
@@ -77,7 +88,7 @@ function EmployeeForm({ loadEmployees }){
     return(
         <div className="card mb-4">
             <div className="card-header">
-                <h4 className="mb-0">Add Employee</h4>
+                <h4 className="mb-0">{employeeToEdit?"Edit Employee":"Add Employee"}</h4>
             </div>
 
             <div className="card-body">
@@ -165,8 +176,13 @@ function EmployeeForm({ loadEmployees }){
                         </div>
 
                         <button type="submit" className="btn btn-primary" disabled={saving}>
-                            {saving?"Saving...":"Save"}
+                            {saving?"Saving...":employeeToEdit?"Update":"Save"}
                         </button>
+                        {employeeToEdit&&(
+                            <button type="button" className="btn btn-secondary ms-2" onClick={onCancelEdit} disabled={saving}>
+                                Cancel
+                            </button>
+                        )}
                     </form>
                 )}
             </div>

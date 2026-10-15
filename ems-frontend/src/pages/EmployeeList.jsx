@@ -10,6 +10,8 @@ function EmployeeList(){
     // store error message
     const[error,setError]=useState("");
 
+    const [employeeToEdit, setEmployeeToEdit] = useState(null);
+
     // load employees from the backend
     const loadEmployees=useCallback(async()=>{
         try{
@@ -93,7 +95,7 @@ function EmployeeList(){
                                     <td>{employee.Contact}</td>
                                     <td>{employee.IsActive?"Active":"Inactive"}</td>
                                     <td>
-                                        <button className="btn btn-warning btn-sm me-2">Edit</button>
+                                        <button className="btn btn-warning btn-sm me-2" onClick={()=>setEmployeeToEdit(employee)}>Edit</button>
                                         <button
                                             className="btn btn-danger btn-sm"
                                             onClick={()=>handleDelete(employee.EmployeeId)}
@@ -114,8 +116,14 @@ function EmployeeList(){
                 </table>
             )}
 
+            
             {/* form to add a new employee; refreshes the list after saving */}
-            <EmployeeForm loadEmployees={loadEmployees} />
+            <EmployeeForm
+                key={employeeToEdit?.EmployeeId ?? "new"}
+                loadEmployees={loadEmployees}
+                employeeToEdit={employeeToEdit}
+                onCancelEdit={()=>setEmployeeToEdit(null)}
+            />
         </div>
     )
 }
